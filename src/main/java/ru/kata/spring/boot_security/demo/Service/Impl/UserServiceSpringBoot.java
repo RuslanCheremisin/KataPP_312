@@ -1,0 +1,98 @@
+package ru.kata.spring.boot_security.demo.Service.Impl;
+
+import ru.kata.spring.boot_security.demo.DAO.UserDAOSpringBoot;
+import ru.kata.spring.boot_security.demo.Model.Role;
+import ru.kata.spring.boot_security.demo.Model.User;
+import ru.kata.spring.boot_security.demo.Service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityNotFoundException;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Set;
+
+@Service
+@Primary
+public class UserServiceSpringBoot implements UserService {
+
+    private UserDAOSpringBoot userDAOSpringBoot;
+    @Autowired
+    public UserServiceSpringBoot(UserDAOSpringBoot userDAOSpringBoot) {
+        this.userDAOSpringBoot = userDAOSpringBoot;
+    }
+
+    @Transactional
+    @Override
+    public void addUser(User user) {
+        userDAOSpringBoot.save(user);
+    }
+
+    @Transactional
+    @Override
+    public void updateUser(Long id, User user) {
+        User existingUser;
+        try {
+            existingUser = userDAOSpringBoot.findById(id).get();
+        } catch (NoSuchElementException e) {
+            throw new EntityNotFoundException("Entity with ID " + id + " not found");
+        }
+
+        existingUser.setFirstName(user.getFirstName());
+        existingUser.setLastName(user.getLastName());
+        existingUser.setAge(user.getAge());
+        userDAOSpringBoot.save(existingUser);
+
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<User> getAllUsers() {
+        return userDAOSpringBoot.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public User getUserById(Long id) {
+        try {
+        return userDAOSpringBoot.findById(id).get();
+        } catch (NoSuchElementException e) {
+            throw new EntityNotFoundException("Entity with ID " + id + " not found");
+        }
+    }
+
+    @Transactional
+    @Override
+    public void deleteUser(Long id) {
+        User existingUser;
+        try {
+            existingUser = userDAOSpringBoot.findById(id).get();
+        } catch (NoSuchElementException e) {
+            throw new EntityNotFoundException("Entity with ID " + id + " not found");
+        }
+        userDAOSpringBoot.delete(existingUser);
+    }
+
+    @Transactional
+    @Override
+    public void deleteAllUsers() {
+        userDAOSpringBoot.deleteAll();
+    }
+
+    @Override
+    public void assignRoles(Long id, Set<Role> roles) {
+        User user = userDAOSpringBoot.findById(id).get();
+        user.assignRole(roles);
+        userDAOSpringBoot.save(user);
+    }
+
+    @Override
+    public User getUserByUsername(String username) {
+        return userDAOSpringBoot.findByUsername(username);
+    }
+
+
+
+}
