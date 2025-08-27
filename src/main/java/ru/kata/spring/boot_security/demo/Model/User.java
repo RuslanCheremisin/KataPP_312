@@ -130,8 +130,8 @@ public class User implements UserDetails {
         return true;
     }
 
-    public void assignRole(Set <Role> roles) {
-        this.roles.addAll(roles);
+    public void setRoles(Set <Role> roles) {
+        this.roles = roles;
     }
 
     public void setUsername(String username) {
@@ -143,6 +143,6 @@ public class User implements UserDetails {
     }
 
     public Set<Role> getRoles() {
-        return Set.copyOf(roles);
+        return roles;
     }
 }

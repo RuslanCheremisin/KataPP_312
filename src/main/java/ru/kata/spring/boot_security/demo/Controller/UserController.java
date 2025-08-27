@@ -1,6 +1,8 @@
 package ru.kata.spring.boot_security.demo.Controller;
 
+import org.springframework.lang.Nullable;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.kata.spring.boot_security.demo.Model.Role;
 import ru.kata.spring.boot_security.demo.Model.User;
 import ru.kata.spring.boot_security.demo.Service.RoleService;
@@ -15,9 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.*;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Controller
 @RequestMapping("/admin")
@@ -25,13 +25,12 @@ import java.util.Set;
 public class UserController {
 
     private final RoleService roleService;
-    private final PasswordEncoder passwordEncoder;
     private UserService userService;
+
     @Autowired
-    public UserController(UserService userService, RoleService roleService, PasswordEncoder passwordEncoder) {
+    public UserController(UserService userService, RoleService roleService) {
         this.userService = userService;
         this.roleService = roleService;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping("/users")
@@ -40,12 +39,11 @@ public class UserController {
         response.setCharacterEncoding("UTF-8");
 
         List<User> users = userService.getAllUsers();
-
-//        users.forEach(u -> System.out.println("User from DB: " + u.getFirstName() + " " + u.getLastName()));
         model.addAttribute("users", users);
         return "users";
     }
-    @GetMapping("/add_user")
+
+    @GetMapping("/add")
     public String showAddUserForm(Model model) {
         if (model.containsAttribute("errors")) {
             model.addAttribute("errors", new HashMap<>());
@@ -54,51 +52,104 @@ public class UserController {
         return "add-user";
     }
 
-    @PostMapping(value = "/add_user", produces = MediaType.TEXT_HTML_VALUE + "; charset=UTF-8")
+    @PostMapping(value = "/add", produces = MediaType.TEXT_HTML_VALUE + "; charset=UTF-8")
     public String saveUser(
             @RequestParam @NotBlank @Pattern(regexp = "^[\\p{L}'-]+(?:\\s[\\p{L}'-]+)*$", message = "Можно использовать только буквы и дефисы(для составных имён)!") String firstName,
             @RequestParam @Pattern(regexp = "^[\\p{L}'-]+(?:\\s[\\p{L}'-]+)*$", message = "Можно использовать только буквы и дефисы(для составных фамилий)!") String lastName,
             @RequestParam @Positive @Max(120) int age,
-            @RequestParam @Pattern(regexp = "^(?=.*[A-Z])(?=.*[0-9])[A-Za-z0-9]{8,}$", message = "Обязательно наличие заглавных и строчных букв, а также цифр, минимум 8 символов.") String username,
-            @RequestParam @Pattern(regexp = "^[A-Za-z0-9]{8,}$", message = "Можно использовать только заглавные или строчные буквы, а также цифры, минимум 8 символов.") String password,
-            Model model
-    ) {
-        User user = new User(firstName, lastName, age, username, passwordEncoder.encode(password));
+            @RequestParam @Pattern(regexp = "^[A-Za-z0-9]{8,}$", message = "Можно использовать только заглавные или строчные буквы, а также цифры, минимум 8 символов.") String username,
+            @RequestParam(required = false) String password,
+            @RequestParam(required = false) @Nullable Set<Role> roles,
+            Model model) {
+        User user = new User(firstName, lastName, age, username, password);
         model.addAttribute("user", user);
         userService.addUser(user);
-            return "redirect:/admin/users";
+        return "redirect:/admin/users";
     }
 
-    @GetMapping("/edit_user")
+    @GetMapping("/users/edit")
     public String showEditForm(@RequestParam @Positive Long id, Model model) {
         if (!model.containsAttribute("errors")) {
             model.addAttribute("errors", new HashMap<>());
         }
-        User user = userService.getUserById(id);
-        model.addAttribute("user", user);
+        if (!model.containsAttribute("user")) {
+            User user = userService.getUserById(id);
+            model.addAttribute("user", user);
+        }
+        if (!model.containsAttribute("roles")) {
+            Set<Role> allRoles = roleService.getAllRoles();
+            model.addAttribute("roles", allRoles);
+        }
         return "edit-user";
     }
 
-    @PostMapping(value = "/edit_user", produces = MediaType.TEXT_HTML_VALUE + "; charset=UTF-8")
+    @PostMapping("/users/edit")
     public String updateUser(
-            @RequestParam @Positive Long id,
-            @RequestParam @NotBlank @Pattern(regexp = "^[\\p{L}'-]+(?:\\s[\\p{L}'-]+)*$", message = "Можно использовать только буквы и дефисы(для составных имён)!") String firstName,
-            @RequestParam @Pattern(regexp = "^[\\p{L}'-]+(?:\\s[\\p{L}'-]+)*$", message = "Можно использовать только буквы и дефисы(для составных фамилий)!") String lastName,
-            @RequestParam @Positive @Max(120) int age,
-            @RequestParam @Pattern(regexp = "^[A-Za-z0-9]{8,}$", message = "Можно использовать только заглавные или строчные буквы, а также цифры, минимум 8 символов.") String username,
-            @RequestParam @Pattern(regexp = "^(?=.*[A-Z])(?=.*[0-9])[A-Za-z0-9]{8,}$", message = "Обязательно наличие заглавных и строчных букв, а также цифр, минимум 8 символов.") String password
-    ) {
-            User user = userService.getUserById(id);
-            user.setFirstName(firstName);
-            user.setLastName(lastName);
-            user.setAge(age);
-            user.setUsername(username);
-            user.setPassword(passwordEncoder.encode(password));
-            userService.updateUser(id, user);
-            return "redirect:/admin/users";
+            @RequestParam Long id,
+            @RequestParam String firstName,
+            @RequestParam(required = false) String lastName,
+            @RequestParam int age,
+            @RequestParam String username,
+            @RequestParam(required = false) String password,
+            @RequestParam(required = false) Set <Long> roles, // передаются id ролей
+            RedirectAttributes redirectAttributes) {
+
+        Map<String, String> errors = new HashMap<>();
+
+        // Валидация
+        if (firstName == null || firstName.isBlank() ||
+                !firstName.matches("^[\\p{L}'-]+(?:\\s[\\p{L}'-]+)*$")) {
+            errors.put("firstName", "Можно использовать только буквы и дефисы (для составных имён)!");
+        }
+        if (lastName != null && !lastName.isBlank() &&
+                !lastName.matches("^[\\p{L}'-]+(?:\\s[\\p{L}'-]+)*$")) {
+            errors.put("lastName", "Можно использовать только буквы и дефисы (для составных фамилий)!");
+        }
+        if (age <= 0 || age > 120) {
+            errors.put("age", "Возраст должен быть от 1 до 120");
+        }
+        if (username == null || !username.matches("^[A-Za-z0-9]{8,}$")) {
+            errors.put("username", "Можно использовать только буквы и цифры, минимум 8 символов.");
+        }
+        if (password != null && !password.isBlank() &&
+                !password.matches("^(?=.*[A-Z])(?=.*[0-9])[A-Za-z0-9]{8,}$")) {
+            errors.put("password", "Пароль должен содержать заглавные и строчные буквы, а также цифры, минимум 8 символов.");
+        }
+
+        if (!errors.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errors", errors);
+
+            User back = userService.getUserById(id);
+            back.setFirstName(firstName);
+            back.setLastName(lastName);
+            back.setAge(age);
+            back.setUsername(username);
+            redirectAttributes.addFlashAttribute("user", back);
+            redirectAttributes.addFlashAttribute("roles", roleService.getAllRoles());
+
+            return "redirect:/admin/users/edit?id=" + id;
+        }
+
+        User user = userService.getUserById(id);
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setAge(age);
+        user.setUsername(username);
+        if (password != null && !password.isBlank()) {
+            user.setPassword(password);
+        }
+
+        if (roles == null) {
+            roles = new HashSet<>();
+        }
+        userService.setRoles(id, roleService.getRolesByIds(roles));
+        userService.updateUser(id, user);
+
+        return "redirect:/admin/users";
     }
 
-    @GetMapping("/delete_user")
+
+    @GetMapping("/users/delete")
     public String deleteUser(@RequestParam @Positive Long id) {
         userService.deleteUser(id);
         return "redirect:/admin/users";
@@ -115,7 +166,7 @@ public class UserController {
         return "roles";
     }
 
-    @GetMapping("/add_role")
+    @GetMapping("/roles/add")
     public String showAddRoleForm(Model model) {
         if (model.containsAttribute("errors")) {
             model.addAttribute("errors", new HashMap<>());
@@ -124,7 +175,7 @@ public class UserController {
         return "add-role";
     }
 
-    @PostMapping(value = "/add_role", produces = MediaType.TEXT_HTML_VALUE + "; charset=UTF-8")
+    @PostMapping(value = "/roles/add", produces = MediaType.TEXT_HTML_VALUE + "; charset=UTF-8")
     public String saveRole(
             @RequestParam @NotBlank @Pattern(regexp = "^[A-Z]+$", message = "Можно использовать только заглавные латинские буквы!") String name,
             Model model
@@ -135,42 +186,6 @@ public class UserController {
         return "redirect:/admin/roles";
     }
 
-    @GetMapping("/assign_roles")
-    public String showAssignRoleForm(@RequestParam @Positive Long id, Model model) {
-        if (!model.containsAttribute("errors")) {
-            model.addAttribute("errors", new HashMap<>());
-        }
-        User user = userService.getUserById(id);
-        Set<Role> roles = roleService.getAllRoles();
-        model.addAttribute("user", user);
-        model.addAttribute("roles", roles);
-        return "assign-roles";
-    }
-
-    @PostMapping(value = "/assign_roles", produces = MediaType.TEXT_HTML_VALUE + "; charset=UTF-8")
-    public String assignRole(Model model,
-                             @RequestParam @Positive Long id,
-                             @RequestParam @NotNull Set<Role> roles) {
-        userService.assignRoles(id, roles);
-        return "redirect:/admin/users";
-    }
-
-    @GetMapping("/encoding-test")
-    @ResponseBody
-    public String testEncoding() {
-        return """
-           <!DOCTYPE html>
-           <html>
-           <head>
-               <meta charset="UTF-8">
-               <title>Тест</title>
-           </head>
-           <body>
-               <h1>Тест кодировки: Добавление пользователя</h1>
-           </body>
-           </html>
-           """;
-    }
 
     @GetMapping(value = "/")
     public String printWelcome() {

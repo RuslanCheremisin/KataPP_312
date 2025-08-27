@@ -21,7 +21,7 @@ public interface UserService {
     void deleteAllUsers();
 
 
-    void assignRoles(Long id, Set<Role> roles);
+    void setRoles(Long id, Set<Role> roles);
 
     UserDetails getUserByUsername(String username);
 }

@@ -47,11 +47,9 @@
                 </td>
                 <td>
                     <div class="btn-group" role="group">
-                        <a th:href="@{/admin/edit_user(id=${user.id})}" class="btn btn-sm btn-warning me-1">Изменить</a>
-                        <a th:href="@{/admin/delete_user(id=${user.id})}" class="btn btn-sm btn-danger"
+                        <a th:href="@{/admin/users/edit(id=${user.id})}" class="btn btn-sm btn-warning me-1">Изменить</a>
+                        <a th:href="@{/admin/users/delete(id=${user.id})}" class="btn btn-sm btn-danger"
                            onclick="return confirm('Вы уверены, что хотите удалить этого пользователя?')">Удалить</a>
-                        <a th:href="@{/admin/assign_roles(id=${user.id})}" class="btn btn-sm btn-info">Назначить
-                            роль</a>
                     </div>
                 </td>
 

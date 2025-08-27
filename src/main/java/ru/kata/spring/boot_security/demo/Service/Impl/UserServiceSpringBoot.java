@@ -1,5 +1,6 @@
 package ru.kata.spring.boot_security.demo.Service.Impl;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import ru.kata.spring.boot_security.demo.DAO.UserDAOSpringBoot;
 import ru.kata.spring.boot_security.demo.Model.Role;
 import ru.kata.spring.boot_security.demo.Model.User;
@@ -8,8 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.kata.spring.boot_security.demo.configs.PasswordConfig;
 
 import javax.persistence.EntityNotFoundException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -19,9 +22,12 @@ import java.util.Set;
 public class UserServiceSpringBoot implements UserService {
 
     private UserDAOSpringBoot userDAOSpringBoot;
+    private PasswordEncoder passwordEncoder;
+
     @Autowired
-    public UserServiceSpringBoot(UserDAOSpringBoot userDAOSpringBoot) {
+    public UserServiceSpringBoot(UserDAOSpringBoot userDAOSpringBoot, PasswordEncoder passwordEncoder) {
         this.userDAOSpringBoot = userDAOSpringBoot;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
@@ -43,8 +49,9 @@ public class UserServiceSpringBoot implements UserService {
         existingUser.setFirstName(user.getFirstName());
         existingUser.setLastName(user.getLastName());
         existingUser.setAge(user.getAge());
+        String rawPassword = user.getPassword();
+        existingUser.setPassword(passwordEncoder.encode(rawPassword));
         userDAOSpringBoot.save(existingUser);
-
     }
 
     @Transactional(readOnly = true)
@@ -82,10 +89,11 @@ public class UserServiceSpringBoot implements UserService {
     }
 
     @Override
-    public void assignRoles(Long id, Set<Role> roles) {
+    public void setRoles(Long id, Set<Role> roles) {
         User user = userDAOSpringBoot.findById(id).get();
-        user.assignRole(roles);
-        userDAOSpringBoot.save(user);
+        user.setRoles(new HashSet<>());
+        user.setRoles(roles);
+//        userDAOSpringBoot.save(user);
     }
 
     @Override

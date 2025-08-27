@@ -59,7 +59,7 @@ public class UserServiceNoSpringBootImpl implements UserService {
     }
 
     @Override
-    public void assignRoles(Long id, Set<Role> roles) {
+    public void setRoles(Long id, Set<Role> roles) {
         /// ///
     }
 

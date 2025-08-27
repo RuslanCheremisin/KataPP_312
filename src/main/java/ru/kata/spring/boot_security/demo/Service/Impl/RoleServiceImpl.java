@@ -9,6 +9,7 @@ import ru.kata.spring.boot_security.demo.Service.RoleService;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class RoleServiceImpl implements RoleService {
@@ -22,6 +23,11 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public Set<Role> getAllRoles() {
         return new HashSet<>(roleDAO.findAll());
+    }
+
+    @Override
+    public Set<Role> getRolesByIds(Set<Long> roleIds) {
+        return new HashSet<>(roleDAO.findAllById(roleIds));
     }
 
     @Override
