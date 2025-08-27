@@ -21,62 +21,81 @@
             border: 1px solid #f5c6cb;
             border-radius: 4px;
         }
-        .required-field::after {
-            content: " *";
-            color: #dc3545;
-        }
     </style>
 </head>
 <body>
 <div class="container mt-5">
     <h2>Добавить пользователя</h2>
-    <div th:if="${errors != null and not errors.isEmpty()}" class="error-container">
+
+    <!-- Блок для отображения общих ошибок -->
+    <div th:if="${not errors.isEmpty()}" class="error-container">
         <h4>Ошибки ввода:</h4>
         <ul>
             <li th:each="error : ${errors.entrySet()}" th:text="${error.value}"></li>
         </ul>
     </div>
 
-    <form th:action="@{/admin/add_user}" method="post">
+    <form th:action="@{/admin/users/add}" method="post">
+<!--        <input type="hidden" name="id" th:value="${user.id}">-->
+
+        <!-- First Name -->
         <div class="mb-3">
-            <label for="firstName" class="form-label required-field">Имя</label>
+            <label for="firstName" class="form-label">Имя*</label>
             <input type="text" class="form-control" id="firstName" name="firstName"
-                   th:value="${user?.firstName}" required
-                   th:classappend="${errors != null and errors.containsKey('firstName')} ? 'is-invalid' : ''">
-            <div th:if="${errors != null and errors.containsKey('firstName')}"
-                 class="error-message" th:text="${errors.get('firstName')}"></div>
+                   th:value="${user.firstName}" required
+                   th:classappend="${errors.containsKey('firstName')} ? 'is-invalid' : ''">
+            <div th:if="${errors.containsKey('firstName')}" class="error-message"
+                 th:text="${errors.get('firstName')}"></div>
         </div>
+
+        <!-- Last Name -->
         <div class="mb-3">
             <label for="lastName" class="form-label">Фамилия</label>
             <input type="text" class="form-control" id="lastName" name="lastName"
-                   th:value="${user?.lastName}"
-                   th:classappend="${errors != null and errors.containsKey('lastName')} ? 'is-invalid' : ''">
-            <div th:if="${errors != null and errors.containsKey('lastName')}"
-                 class="error-message" th:text="${errors.get('lastName')}"></div>
+                   th:value="${user.lastName}"
+                   th:classappend="${errors.containsKey('lastName')} ? 'is-invalid' : ''">
+            <div th:if="${errors.containsKey('lastName')}" class="error-message"
+                 th:text="${errors.get('lastName')}"></div>
         </div>
+
+        <!-- Age -->
         <div class="mb-3">
-            <label for="age" class="form-label required-field">Возраст</label>
+            <label for="age" class="form-label">Возраст*</label>
             <input type="number" class="form-control" id="age" name="age"
-                   th:value="${user?.age}" required
-                   th:classappend="${errors != null and errors.containsKey('age')} ? 'is-invalid' : ''">
-            <div th:if="${errors != null and errors.containsKey('age')}"
-                 class="error-message" th:text="${errors.get('age')}"></div>
+                   th:value="${user.age}" required
+                   th:classappend="${errors.containsKey('age')} ? 'is-invalid' : ''">
+            <div th:if="${errors.containsKey('age')}" class="error-message"
+                 th:text="${errors.get('age')}"></div>
         </div>
         <div class="mb-3">
-            <label for="username" class="form-label required-field">Логин*</label>
+            <label for="username" class="form-label">Логин*</label>
             <input type="text" class="form-control" id="username" name="username"
-                   th:value="${user?.username}" required
-                   th:classappend="${errors != null and errors.containsKey('username')} ? 'is-invalid' : ''">
-            <div th:if="${errors != null and errors.containsKey('username')}"
-                 class="error-message" th:text="${errors.get('username')}"></div>
+                   th:value="${user.username}" required
+                   th:classappend="${errors.containsKey('username')} ? 'is-invalid' : ''">
+            <div th:if="${errors.containsKey('username')}" class="error-message"
+                 th:text="${errors.get('username')}"></div>
         </div>
         <div class="mb-3">
-            <label for="password" class="form-label required-field">Пароль*</label>
-            <input type="text" class="form-control" id="password" name="password"
-                   th:value="${user?.firstName}" required
-                   th:classappend="${errors != null and errors.containsKey('password')} ? 'is-invalid' : ''">
-            <div th:if="${errors != null and errors.containsKey('password')}"
-                 class="error-message" th:text="${errors.get('password')}"></div>
+            <label for="password" class="form-label">Пароль*</label>
+            <input type="password" class="form-control" id="password" name="password"
+                   th:classappend="${errors.containsKey('password')} ? 'is-invalid' : ''">
+            <div th:if="${errors.containsKey('password')}" class="error-message"
+                 th:text="${errors.get('password')}"></div>
+        </div>
+
+        <div class="container mt-4">
+            <h1 class="mb-4">Назначить роли пользователю</h1>
+
+            <input type="hidden" name="id" th:value="${user.id}" />
+
+            <div class="mb-3">
+                <label for="roles" class="form-label">Выберите роли</label>
+                <select id="roles" name="roles" class="form-control" multiple>
+                    <option th:each="role : ${roles}"
+                            th:value="${role.id}"
+                            th:text="${role.name}"></option>
+                </select>
+            </div>
         </div>
 
         <button type="submit" class="btn btn-primary">ОК</button>

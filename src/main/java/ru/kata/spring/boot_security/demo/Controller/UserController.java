@@ -1,7 +1,5 @@
 package ru.kata.spring.boot_security.demo.Controller;
 
-import org.springframework.lang.Nullable;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.kata.spring.boot_security.demo.Model.Role;
 import ru.kata.spring.boot_security.demo.Model.User;
@@ -43,26 +41,80 @@ public class UserController {
         return "users";
     }
 
-    @GetMapping("/add")
+    @GetMapping("/users/add")
     public String showAddUserForm(Model model) {
-        if (model.containsAttribute("errors")) {
+        if (!model.containsAttribute("errors")) {
             model.addAttribute("errors", new HashMap<>());
         }
-        model.addAttribute("user", new User());
+        if (!model.containsAttribute("user")) {
+            User user = new User();
+            model.addAttribute("user", user);
+        }
+        if (!model.containsAttribute("roles")) {
+            Set<Role> allRoles = roleService.getAllRoles();
+            model.addAttribute("roles", allRoles);
+        }
         return "add-user";
     }
 
-    @PostMapping(value = "/add", produces = MediaType.TEXT_HTML_VALUE + "; charset=UTF-8")
-    public String saveUser(
-            @RequestParam @NotBlank @Pattern(regexp = "^[\\p{L}'-]+(?:\\s[\\p{L}'-]+)*$", message = "Можно использовать только буквы и дефисы(для составных имён)!") String firstName,
-            @RequestParam @Pattern(regexp = "^[\\p{L}'-]+(?:\\s[\\p{L}'-]+)*$", message = "Можно использовать только буквы и дефисы(для составных фамилий)!") String lastName,
-            @RequestParam @Positive @Max(120) int age,
-            @RequestParam @Pattern(regexp = "^[A-Za-z0-9]{8,}$", message = "Можно использовать только заглавные или строчные буквы, а также цифры, минимум 8 символов.") String username,
+    @PostMapping(value = "/users/add", produces = MediaType.TEXT_HTML_VALUE + "; charset=UTF-8")
+    public String addUser(
+            @RequestParam String firstName,
+            @RequestParam(required = false) String lastName,
+            @RequestParam int age,
+            @RequestParam String username,
             @RequestParam(required = false) String password,
-            @RequestParam(required = false) @Nullable Set<Role> roles,
-            Model model) {
-        User user = new User(firstName, lastName, age, username, password);
-        model.addAttribute("user", user);
+            @RequestParam(required = false) Set <Long> roles, // передаются id ролей
+            RedirectAttributes redirectAttributes) {
+
+        Map<String, String> errors = new HashMap<>();
+
+        if (firstName == null || firstName.isBlank() ||
+                !firstName.matches("^[\\p{L}'-]+(?:\\s[\\p{L}'-]+)*$")) {
+            errors.put("firstName", "Можно использовать только буквы и дефисы (для составных имён)!");
+        }
+        if (lastName != null && !lastName.isBlank() &&
+                !lastName.matches("^[\\p{L}'-]+(?:\\s[\\p{L}'-]+)*$")) {
+            errors.put("lastName", "Можно использовать только буквы и дефисы (для составных фамилий)!");
+        }
+        if (age <= 0 || age > 120) {
+            errors.put("age", "Возраст должен быть от 1 до 120");
+        }
+        if (username == null || !username.matches("^[A-Za-z0-9]{8,}$")) {
+            errors.put("username", "Можно использовать только буквы и цифры, минимум 8 символов.");
+        }
+        if (password != null && !password.isBlank() &&
+                !password.matches("^(?=.*[A-Z])(?=.*[0-9])[A-Za-z0-9]{8,}$")) {
+            errors.put("password", "Пароль должен содержать заглавные и строчные буквы, а также цифры, минимум 8 символов.");
+        }
+
+        User user = new User();
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setAge(age);
+        user.setUsername(username);
+        if (password != null && !password.isBlank()) {
+            user.setPassword(password);
+        }
+        if (!errors.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errors", errors);
+
+            User back = user;
+            back.setFirstName(firstName);
+            back.setLastName(lastName);
+            back.setAge(age);
+            back.setUsername(username);
+            redirectAttributes.addFlashAttribute("user", back);
+            redirectAttributes.addFlashAttribute("roles", roleService.getAllRoles());
+
+            return "redirect:/admin/users/add";
+        }
+
+
+        if (roles == null) {
+            roles = new HashSet<>();
+        }
+        user.setRoles(roleService.getRolesByIds(roles));
         userService.addUser(user);
         return "redirect:/admin/users";
     }
@@ -96,7 +148,6 @@ public class UserController {
 
         Map<String, String> errors = new HashMap<>();
 
-        // Валидация
         if (firstName == null || firstName.isBlank() ||
                 !firstName.matches("^[\\p{L}'-]+(?:\\s[\\p{L}'-]+)*$")) {
             errors.put("firstName", "Можно использовать только буквы и дефисы (для составных имён)!");
