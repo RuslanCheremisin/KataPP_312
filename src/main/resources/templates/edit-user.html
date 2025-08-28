@@ -25,6 +25,7 @@
 </head>
 <body>
 <div class="container mt-5">
+    <a class="logout-btn" th:href="@{/logout}">Log out</a>
     <h2>Изменить данные</h2>
 
     <!-- Блок для отображения общих ошибок -->
@@ -100,7 +101,9 @@
 
         <button type="submit" class="btn btn-primary">ОК</button>
         <a th:href="@{/admin/users}" class="btn btn-secondary">Отмена</a>
+
     </form>
 </div>
+
 </body>
 </html>

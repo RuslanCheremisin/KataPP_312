@@ -38,7 +38,7 @@ public class UserServiceSpringBoot implements UserService {
 
     @Transactional
     @Override
-    public void updateUser(Long id, User user) {
+    public void updateUser(Long id, User newUser) {
         User existingUser;
         try {
             existingUser = userDAOSpringBoot.findById(id).get();
@@ -46,11 +46,21 @@ public class UserServiceSpringBoot implements UserService {
             throw new EntityNotFoundException("Entity with ID " + id + " not found");
         }
 
-        existingUser.setFirstName(user.getFirstName());
-        existingUser.setLastName(user.getLastName());
-        existingUser.setAge(user.getAge());
-        String rawPassword = user.getPassword();
-        existingUser.setPassword(passwordEncoder.encode(rawPassword));
+        existingUser.setFirstName(newUser.getFirstName());
+        existingUser.setLastName(newUser.getLastName());
+        existingUser.setAge(newUser.getAge());
+        existingUser.setUsername(newUser.getUsername());
+        String newPassword = newUser.getPassword();
+
+        if (!newUser.getPassword().equals(existingUser.getPassword()) &&
+                newPassword != null &&
+                !newPassword.isEmpty() &&
+                !passwordEncoder.matches(newPassword, existingUser.getPassword())) {
+                String newPasswordHash = passwordEncoder.encode(newPassword);
+                existingUser.setPassword(newPasswordHash);
+
+        }
+        existingUser.setRoles(newUser.getRoles());
         userDAOSpringBoot.save(existingUser);
     }
 
