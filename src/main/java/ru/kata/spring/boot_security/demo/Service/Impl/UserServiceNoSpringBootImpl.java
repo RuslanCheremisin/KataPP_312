@@ -1,7 +1,5 @@
 package ru.kata.spring.boot_security.demo.Service.Impl;
 
-import org.springframework.security.core.userdetails.UserDetails;
-import ru.kata.spring.boot_security.demo.DAO.Impl.UserDAONoSpringBootImpl;
 import ru.kata.spring.boot_security.demo.DAO.UserDAO;
 import ru.kata.spring.boot_security.demo.Model.Role;
 import ru.kata.spring.boot_security.demo.Model.User;
@@ -64,7 +62,7 @@ public class UserServiceNoSpringBootImpl implements UserService {
     }
 
     @Override
-    public UserDetails getUserByUsername(String username) {
+    public User getUserByUsername(String username) {
         return null;
     }
 

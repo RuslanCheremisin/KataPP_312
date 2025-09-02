@@ -1,6 +1,5 @@
 package ru.kata.spring.boot_security.demo.Service;
 
-import org.springframework.security.core.userdetails.UserDetails;
 import ru.kata.spring.boot_security.demo.Model.Role;
 import ru.kata.spring.boot_security.demo.Model.User;
 
@@ -23,5 +22,5 @@ public interface UserService {
 
     void setRoles(Long id, Set<Role> roles);
 
-    UserDetails getUserByUsername(String username);
+    User getUserByUsername(String username);
 }

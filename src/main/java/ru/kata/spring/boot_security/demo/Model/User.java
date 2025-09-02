@@ -145,4 +145,8 @@ public class User implements UserDetails {
     public Set<Role> getRoles() {
         return roles;
     }
+
+    public boolean hasRole(Role role) {
+        return this.roles != null && this.roles.contains(role);
+    }
 }
