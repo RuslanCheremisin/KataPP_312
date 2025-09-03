@@ -28,7 +28,7 @@ public class UserController {
 	@GetMapping(value = "/user")
 	public String userPage(Authentication authentication, Model model) {
 		String username = authentication.getName();
-		model.addAttribute("user", userService.getUserByUsername(username));
+		model.addAttribute("currentUser", userService.getUserByUsername(username));
 		return "user";
 	}
 	
