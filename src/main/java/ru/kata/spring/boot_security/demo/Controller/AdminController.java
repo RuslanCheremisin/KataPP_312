@@ -21,7 +21,7 @@ import javax.servlet.http.HttpSession;
 import javax.validation.constraints.*;
 import java.util.*;
 
-@Controller
+//@Controller
 @RequestMapping("/admin")
 @Validated
 public class AdminController {
@@ -29,7 +29,7 @@ public class AdminController {
     private final RoleService roleService;
     private UserService userService;
 
-    @Autowired
+//    @Autowired
     public AdminController(UserService userService, RoleService roleService) {
         this.userService = userService;
         this.roleService = roleService;

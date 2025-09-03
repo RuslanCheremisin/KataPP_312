@@ -31,8 +31,8 @@ public class UserServiceSpringBoot implements UserService {
 
     @Transactional
     @Override
-    public void addUser(User user) {
-        userDAOSpringBoot.save(user);
+    public User addUser(User user) {
+        return userDAOSpringBoot.save(user);
     }
 
     @Transactional

@@ -15,8 +15,9 @@ public class UserDAONoSpringBootImpl implements UserDAO {
     private EntityManager entityManager;
 
     @Override
-    public void addUser(User user) {
+    public User addUser(User user) {
         entityManager.persist(user);
+        return user;
     }
 
     @Override

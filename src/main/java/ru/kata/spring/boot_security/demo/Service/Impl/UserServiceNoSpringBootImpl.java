@@ -22,8 +22,8 @@ public class UserServiceNoSpringBootImpl implements UserService {
 
     @Transactional
     @Override
-    public void addUser(User user) {
-        userDAO.addUser(user);
+    public User addUser(User user) {
+        return userDAO.addUser(user);
     }
 
     @Transactional
