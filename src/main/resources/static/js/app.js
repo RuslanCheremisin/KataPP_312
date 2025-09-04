@@ -2,13 +2,11 @@ let currentUser = null;
 let allUsers = [];
 let allRoles = [];
 
-// Инициализация приложения
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
     setupEventListeners();
 });
 
-// Инициализация данных
 async function initializeApp() {
     try {
         await Promise.all([
@@ -26,17 +24,13 @@ async function initializeApp() {
     }
 }
 
-// Настройка обработчиков событий
 function setupEventListeners() {
-    // Выход
     document.getElementById('logoutForm').addEventListener('submit', handleLogout);
 
-    // Формы
     document.getElementById('addUserForm').addEventListener('submit', handleAddUser);
     document.getElementById('editForm').addEventListener('submit', handleEditUser);
     document.getElementById('deleteForm').addEventListener('submit', handleDeleteUser);
 
-    // Модальные окна
     const editModal = document.getElementById('editModal');
     const deleteModal = document.getElementById('deleteModal');
 
@@ -150,7 +144,6 @@ async function apiDelete(url) {
     return apiCall(url, { method: 'DELETE' });
 }
 
-// Загрузка данных
 async function loadCurrentUser() {
     currentUser = await apiGet('/admin/current-user');
 }
@@ -163,7 +156,6 @@ async function loadAllRoles() {
     allRoles = await apiGet('/admin/roles');
 }
 
-// Рендеринг данных
 function renderUserProfile() {
     if (currentUser) {
         document.getElementById('currentUsername').textContent = currentUser.username;
@@ -225,7 +217,6 @@ function fillRoleSelects() {
     });
 }
 
-// Обработчики форм
 async function handleAddUser(event) {
     event.preventDefault();
 
@@ -247,7 +238,6 @@ async function handleAddUser(event) {
         resetAddUserForm();
         showNotification('Пользователь успешно добавлен', 'success');
 
-        // Переключение на вкладку с пользователями
         const usersTab = document.querySelector('button[data-bs-target="#users-tab"]');
         if (usersTab) {
             new bootstrap.Tab(usersTab).show();
@@ -284,7 +274,6 @@ async function handleEditUser(event) {
     try {
         const updatedUser = await apiPut('/admin/users/' + data.id, data);
 
-        // Обновляем данные пользователя
         const index = allUsers.findIndex(u => u.id === data.id);
         if (index !== -1) {
             allUsers[index] = updatedUser;
@@ -318,7 +307,6 @@ async function handleDeleteUser(event) {
     try {
         await apiDelete('/admin/users/' + userId);
 
-        // Удаляем пользователя из списка
         allUsers = allUsers.filter(u => u.id !== userId);
         renderUsersTable();
         const modal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
@@ -332,17 +320,28 @@ async function handleDeleteUser(event) {
 
 async function handleLogout(event) {
     event.preventDefault();
-
+    if (!confirm('Вы уверены, что хотите выйти из системы?')) {
+        return;
+    }
     try {
-        await apiPost('/logout', {});
-        window.location.href = '/login';
+        const response = await fetch('/logout', {
+            method: 'POST',
+            headers: getCSRFHeader(),
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            window.location.href = '/login?logout';
+        } else {
+            throw new Error('Logout failed with status: ' + response.status);
+        }
+
     } catch (error) {
         console.error('Logout error:', error);
-        showNotification('Ошибка при выходе из системы', 'danger');
+        window.location.href = '/login?logout';
     }
 }
 
-// Вспомогательные функции
 function fillEditForm(user) {
     document.getElementById('editUserId').value = user.id;
     document.getElementById('editFirstName').value = user.firstName;
@@ -351,7 +350,6 @@ function fillEditForm(user) {
     document.getElementById('editUsername').value = user.username;
     document.getElementById('editPassword').value = '';
 
-    // Выбор ролей
     const rolesSelect = document.getElementById('editRoles');
     if (rolesSelect) {
         Array.from(rolesSelect.options).forEach(option => {
@@ -438,7 +436,6 @@ function showNotification(message, type = 'info') {
 
     document.body.appendChild(alert);
 
-    // Автоматическое скрытие через 5 секунд
     setTimeout(() => {
         if (alert.parentNode) {
             bootstrap.Alert.getOrCreateInstance(alert).close();
@@ -446,7 +443,6 @@ function showNotification(message, type = 'info') {
     }, 5000);
 }
 
-// Проверка CSRF токена при загрузке
 function checkCSRFToken() {
     const token = getCSRFToken();
     if (!token) {
@@ -455,5 +451,4 @@ function checkCSRFToken() {
     return token;
 }
 
-// Вызываем проверку при загрузке
 checkCSRFToken();

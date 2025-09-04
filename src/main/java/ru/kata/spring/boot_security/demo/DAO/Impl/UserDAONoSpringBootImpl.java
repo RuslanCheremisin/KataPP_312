@@ -21,13 +21,14 @@ public class UserDAONoSpringBootImpl implements UserDAO {
     }
 
     @Override
-    public void updateUser(Long id, User newUser) {
+    public User updateUser(Long id, User newUser) {
         User user = getUserByID(id);
         user.setFirstName(newUser.getFirstName());
         user.setLastName(newUser.getLastName());
         user.setAge(newUser.getAge());
         entityManager.merge(user);
         entityManager.flush();
+        return getUserByID(id);
     }
 
     @Override

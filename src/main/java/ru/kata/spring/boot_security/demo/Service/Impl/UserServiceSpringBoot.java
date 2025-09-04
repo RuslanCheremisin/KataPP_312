@@ -37,7 +37,7 @@ public class UserServiceSpringBoot implements UserService {
 
     @Transactional
     @Override
-    public void updateUser(Long id, User newUser) {
+    public User updateUser(Long id, User newUser) {
         User existingUser;
         try {
             existingUser = userDAOSpringBoot.findById(id).get();
@@ -61,6 +61,8 @@ public class UserServiceSpringBoot implements UserService {
         }
         existingUser.setRoles(newUser.getRoles());
         userDAOSpringBoot.save(existingUser);
+
+        return existingUser;
     }
 
     @Transactional(readOnly = true)

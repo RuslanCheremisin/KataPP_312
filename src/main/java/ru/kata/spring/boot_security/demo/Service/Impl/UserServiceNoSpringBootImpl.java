@@ -28,8 +28,8 @@ public class UserServiceNoSpringBootImpl implements UserService {
 
     @Transactional
     @Override
-    public void updateUser(Long id, User user) {
-        userDAO.updateUser(id, user);
+    public User updateUser(Long id, User user) {
+        return userDAO.updateUser(id, user);
     }
 
     @Transactional(readOnly = true)

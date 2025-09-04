@@ -11,14 +11,14 @@ public class LoginController {
     public String login() {
         return "login";
     }
-
-    @GetMapping("/logout")
-    public String showLogoutConfirmation() {
-        return "logout";
-    }
-
-    @PostMapping("/logout")
-    public String performLogout() {
-        return "redirect:/login?logout";
-    }
+//
+//    @GetMapping("/logout")
+//    public String showLogoutConfirmation() {
+//        return "logout";
+//    }
+//
+//    @PostMapping("/logout")
+//    public String performLogout() {
+//        return "redirect:/login?logout";
+//    }
 }

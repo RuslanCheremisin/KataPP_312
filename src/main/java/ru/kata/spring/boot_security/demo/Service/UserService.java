@@ -9,7 +9,7 @@ import java.util.Set;
 public interface UserService {
     User addUser(User user);
 
-    void updateUser(Long id, User user);
+    User updateUser(Long id, User user);
 
     List<User> getAllUsers();
 
