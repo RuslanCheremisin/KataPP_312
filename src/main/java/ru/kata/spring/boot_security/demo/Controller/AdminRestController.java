@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Set;
 
 @RestController
-//@RequestMapping("/admin")
 @Validated
 public class AdminRestController {
 
@@ -68,7 +67,5 @@ public class AdminRestController {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
-//
-//    @PostMapping("/logout")
-//    public void logout() { }
+
 }
