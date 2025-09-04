@@ -4,6 +4,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import ru.kata.spring.boot_security.demo.DAO.UserDAOSpringBoot;
 import ru.kata.spring.boot_security.demo.Model.Role;
 import ru.kata.spring.boot_security.demo.Model.User;
+import ru.kata.spring.boot_security.demo.Service.RoleService;
 import ru.kata.spring.boot_security.demo.Service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
@@ -15,23 +16,29 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Primary
 public class UserServiceSpringBoot implements UserService {
 
+    private final RoleService roleService;
     private UserDAOSpringBoot userDAOSpringBoot;
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserServiceSpringBoot(UserDAOSpringBoot userDAOSpringBoot, PasswordEncoder passwordEncoder) {
+    public UserServiceSpringBoot(UserDAOSpringBoot userDAOSpringBoot, PasswordEncoder passwordEncoder, RoleService roleService) {
         this.userDAOSpringBoot = userDAOSpringBoot;
         this.passwordEncoder = passwordEncoder;
+        this.roleService = roleService;
     }
 
     @Transactional
     @Override
     public User addUser(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        Set<Role> newRoles = roleService.getRolesByIds(user.getRoles().stream().map(Role::getId).collect(Collectors.toSet()));
+        user.setRoles(newRoles);
         return userDAOSpringBoot.save(user);
     }
 

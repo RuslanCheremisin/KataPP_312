@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Set;
 
 @RestController
-@RequestMapping("/admin")
+//@RequestMapping("/admin")
 @Validated
 public class AdminRestController {
 

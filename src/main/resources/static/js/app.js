@@ -16,11 +16,24 @@ async function initializeApp() {
         ]);
 
         renderUserProfile();
-        renderUsersTable();
         fillRoleSelects();
     } catch (error) {
         console.error('Ошибка инициализации:', error);
         showNotification('Ошибка загрузки данных', 'danger');
+    }
+    if (currentUser.roles.map(r => r.name).includes("ADMIN")) {
+        renderUsersTable();
+    } else {
+        allUsers = [];
+        const adminButton = document.querySelector('button[data-bs-target="#settings"]');
+        adminButton.style.display = "none";
+        const adminContent = document.getElementById('settings');
+        adminContent.style.display = "none";
+        const userButton = document.querySelector('button[data-bs-target="#profile"]');
+        userButton.click();
+        // const userContent = document.getElementById('profile');
+
+
     }
 }
 
@@ -145,26 +158,34 @@ async function apiDelete(url) {
 }
 
 async function loadCurrentUser() {
-    currentUser = await apiGet('/admin/current-user');
+    // currentUser = await apiGet('/admin/current-user');
+    currentUser = await apiGet('/current-user');
 }
 
 async function loadAllUsers() {
-    allUsers = await apiGet('/admin/users');
+    // allUsers = await apiGet('/admin/users');
+    allUsers = await apiGet('/users');
 }
 
 async function loadAllRoles() {
-    allRoles = await apiGet('/admin/roles');
+    // allRoles = await apiGet('/admin/roles');
+    allRoles = await apiGet('/roles');
 }
 
 function renderUserProfile() {
     if (currentUser) {
-        document.getElementById('currentUsername').textContent = currentUser.username;
-        document.getElementById('currentUserRoles').textContent = 'Роли: ' + currentUser.roles.map(r => r.name).join(', ');
+        const tbody = document.getElementById('currentUserTableBody');
+        tbody.innerHTML = '';
 
-        document.getElementById('profileFirstName').textContent = currentUser.firstName;
-        document.getElementById('profileLastName').textContent = currentUser.lastName || '-';
-        document.getElementById('profileAge').textContent = currentUser.age;
-        document.getElementById('profileUsername').textContent = currentUser.username;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${currentUser.id}</td>
+            <td>${currentUser.firstName}</td>
+            <td>${currentUser.lastName || '-'}</td>
+            <td>${currentUser.age}</td>
+            <td>${currentUser.username}</td>
+            <td>${currentUser.roles.map(r => r.name).join(', ')}</td>`;
+        tbody.appendChild(row);
     }
 }
 
@@ -231,7 +252,8 @@ async function handleAddUser(event) {
     };
 
     try {
-        const newUser = await apiPost('/admin/users', data);
+        // const newUser = await apiPost('/admin/users', data);
+        const newUser = await apiPost('/users', data);
 
         allUsers.push(newUser);
         renderUsersTable();
@@ -272,7 +294,8 @@ async function handleEditUser(event) {
     };
 
     try {
-        const updatedUser = await apiPut('/admin/users/' + data.id, data);
+        // const updatedUser = await apiPut('/admin/users/' + data.id, data);
+        const updatedUser = await apiPut('/users/' + data.id, data);
 
         const index = allUsers.findIndex(u => u.id === data.id);
         if (index !== -1) {
@@ -305,7 +328,8 @@ async function handleDeleteUser(event) {
     const userId = parseInt(formData.get('id'));
 
     try {
-        await apiDelete('/admin/users/' + userId);
+        // await apiDelete('/admin/users/' + userId);
+        await apiDelete('/users/' + userId);
 
         allUsers = allUsers.filter(u => u.id !== userId);
         renderUsersTable();
