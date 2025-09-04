@@ -20,11 +20,11 @@ public class User implements UserDetails {
 
     @Column(name = "firstName", nullable = false)
     @NotNull(message = "Имя не может быть пустым!")
-    @Pattern(regexp = "^[\\p{L}'-]+(?:\\s[\\p{L}'-]+)*$", message = "Можно использовать только буквы и дефисы(для составных имён)!")
+    @Pattern(regexp = "^[\\p{L}'-]+(?:\\s[\\p{L}'-]+)*$", message = "В имени можно использовать только буквы и дефисы(для составных имён)!")
     private String firstName;
 
     @Column(name = "lastName")
-    @Pattern(regexp = "^[\\p{L}'-]+(?:\\s[\\p{L}'-]+)*$", message = "Можно использовать только буквы и дефисы(для составных фамилий)!")
+    @Pattern(regexp = "^[\\p{L}'-]+(?:\\s[\\p{L}'-]+)*$", message = "В фамилии можно использовать только буквы и дефисы(для составных фамилий)!")
     private String lastName;
 
     @Column(nullable = false)

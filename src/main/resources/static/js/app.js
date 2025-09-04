@@ -2,7 +2,7 @@ let currentUser = null;
 let allUsers = [];
 let allRoles = [];
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initializeApp();
     setupEventListeners();
 });
@@ -48,7 +48,7 @@ function setupEventListeners() {
     const deleteModal = document.getElementById('deleteModal');
 
     if (editModal) {
-        editModal.addEventListener('show.bs.modal', function(event) {
+        editModal.addEventListener('show.bs.modal', function (event) {
             const button = event.relatedTarget;
             if (button) {
                 const userId = button.getAttribute('data-user-id');
@@ -63,7 +63,7 @@ function setupEventListeners() {
     }
 
     if (deleteModal) {
-        deleteModal.addEventListener('show.bs.modal', function(event) {
+        deleteModal.addEventListener('show.bs.modal', function (event) {
             const button = event.relatedTarget;
             if (button) {
                 const userId = button.getAttribute('data-user-id');
@@ -94,7 +94,7 @@ function getCSRFToken() {
 
 function getCSRFHeader() {
     const token = getCSRFToken();
-    return token ? { 'X-XSRF-TOKEN': token } : {};
+    return token ? {'X-XSRF-TOKEN': token} : {};
 }
 
 // ===== API CALL WITH CSRF =====
@@ -120,11 +120,10 @@ async function apiCall(url, options = {}) {
         });
 
         if (!response.ok) {
-            // Если получили 403 - возможно CSRF токен невалиден
-            if (response.status === 403) {
-                showNotification('Ошибка доступа. Попробуйте перезагрузить страницу.', 'danger');
-            }
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const error = new Error(`HTTP error! status: ${response.status}`);
+            error.response = response;
+            // showNotification('Ошибка доступа. Попробуйте перезагрузить страницу.', 'danger');
+            throw error;
         }
 
         return response.status === 204 ? null : await response.json();
@@ -136,7 +135,7 @@ async function apiCall(url, options = {}) {
 
 // ===== SPECIFIC API METHODS WITH CSRF =====
 async function apiGet(url) {
-    return apiCall(url, { method: 'GET' });
+    return apiCall(url, {method: 'GET'});
 }
 
 async function apiPost(url, data) {
@@ -154,7 +153,7 @@ async function apiPut(url, data) {
 }
 
 async function apiDelete(url) {
-    return apiCall(url, { method: 'DELETE' });
+    return apiCall(url, {method: 'DELETE'});
 }
 
 async function loadCurrentUser() {
@@ -248,11 +247,10 @@ async function handleAddUser(event) {
         age: parseInt(formData.get('age')),
         username: formData.get('username'),
         password: formData.get('password'),
-        roles: Array.from(formData.getAll('roles')).map(id => ({ id: parseInt(id) }))
+        roles: Array.from(formData.getAll('roles')).map(id => ({id: parseInt(id)}))
     };
 
     try {
-        // const newUser = await apiPost('/admin/users', data);
         const newUser = await apiPost('/users', data);
 
         allUsers.push(newUser);
@@ -290,11 +288,10 @@ async function handleEditUser(event) {
         age: parseInt(formData.get('age')),
         username: formData.get('username'),
         password: formData.get('password'),
-        roles: Array.from(formData.getAll('roles')).map(id => ({ id: parseInt(id) }))
+        roles: Array.from(formData.getAll('roles')).map(id => ({id: parseInt(id)}))
     };
 
     try {
-        // const updatedUser = await apiPut('/admin/users/' + data.id, data);
         const updatedUser = await apiPut('/users/' + data.id, data);
 
         const index = allUsers.findIndex(u => u.id === data.id);
