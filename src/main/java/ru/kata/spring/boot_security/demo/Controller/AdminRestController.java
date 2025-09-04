@@ -10,9 +10,12 @@ import ru.kata.spring.boot_security.demo.Model.User;
 import ru.kata.spring.boot_security.demo.Model.Role;
 import ru.kata.spring.boot_security.demo.Service.RoleService;
 import ru.kata.spring.boot_security.demo.Service.UserService;
+import ru.kata.spring.boot_security.demo.util.CustomValidator;
 
+import javax.validation.ConstraintViolation;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @Validated
@@ -20,11 +23,13 @@ public class AdminRestController {
 
     private final RoleService roleService;
     private UserService userService;
+    private CustomValidator customValidator;
 
     @Autowired
-    public AdminRestController(UserService userService, RoleService roleService) {
+    public AdminRestController(UserService userService, RoleService roleService, CustomValidator customValidator) {
         this.userService = userService;
         this.roleService = roleService;
+        this.customValidator = customValidator;
     }
 
     @GetMapping("/current-user")
@@ -50,6 +55,11 @@ public class AdminRestController {
 
     @PostMapping("/users")
     public ResponseEntity<?> addUser(@RequestBody User user) {
+
+        Set<ConstraintViolation<User>> violations = customValidator.getValidator().validate(user);
+        if (!violations.isEmpty()) {
+            return ResponseEntity.internalServerError().body(violations.stream().map(ConstraintViolation::getMessage).collect(Collectors.toSet()));
+        }
         User newUser = userService.addUser(user);
         return ResponseEntity.ok(newUser);
 
@@ -57,6 +67,10 @@ public class AdminRestController {
 
     @PutMapping("/users/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User user) {
+        Set<ConstraintViolation<User>> violations = customValidator.getValidator().validate(user);
+        if (!violations.isEmpty()) {
+            return ResponseEntity.internalServerError().body(violations.stream().map(ConstraintViolation::getMessage).collect(Collectors.toSet()));
+        }
         User editedUser = userService.updateUser(id, user);
         return ResponseEntity.ok(editedUser);
 
