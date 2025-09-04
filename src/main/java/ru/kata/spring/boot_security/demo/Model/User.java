@@ -91,6 +91,7 @@ public class User implements UserDetails {
                 '}';
     }
 
+
     public void setId(@Positive Long id) {
         this.id = id;
     }

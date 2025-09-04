@@ -81,5 +81,4 @@ public class AdminRestController {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
-
 }

@@ -258,6 +258,7 @@ async function handleAddUser(event) {
         resetAddUserForm();
         showNotification('Пользователь успешно добавлен', 'success');
 
+
         const usersTab = document.querySelector('button[data-bs-target="#users-tab"]');
         if (usersTab) {
             new bootstrap.Tab(usersTab).show();

@@ -13,5 +13,4 @@ public class CustomValidator {
     public Validator getValidator() {
         return Validation.buildDefaultValidatorFactory().getValidator();
     }
-
 }
